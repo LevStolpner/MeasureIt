@@ -12,7 +12,7 @@ import static ru.stolpner.MeasuringAction.*;
  */
 class Measurer {
 
-    private static final int MAXIMUM_NUMBER_OF_STEPS = 1000;
+    private static final int MAXIMUM_NUMBER_OF_STEPS = 1000000;
 
     /**
      * Solves the problem given verified arguments
