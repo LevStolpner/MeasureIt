@@ -15,7 +15,7 @@ class MeasuringStep {
      * @param firstContainerFill first container fill after this step
      * @param secondContainerFill second container fill after this step
      */
-    public MeasuringStep(MeasuringAction action, int firstContainerFill, int secondContainerFill) {
+    MeasuringStep(MeasuringAction action, int firstContainerFill, int secondContainerFill) {
         this.action = action;
         this.firstContainerFill = firstContainerFill;
         this.secondContainerFill = secondContainerFill;

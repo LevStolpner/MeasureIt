@@ -27,6 +27,24 @@ class MeasuringSequence {
     }
 
     /**
+     * Gets last measurement step
+     *
+     * @return last measurement step
+     */
+    MeasuringStep getLastStep() {
+        return measuringSteps.get(measuringSteps.size() - 1);
+    }
+
+    /**
+     * Gets number of steps in sequence
+     *
+     * @return number of steps in sequence
+     */
+    int getSequenceLength() {
+        return measuringSteps.size();
+    }
+
+    /**
      * Builds full measuring sequence information string
      *
      * @return measuring sequence information string
