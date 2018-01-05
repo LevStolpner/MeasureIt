@@ -1,9 +1,6 @@
 package ru.stolpner;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
 
 import static ru.stolpner.MeasuringAction.*;
 
@@ -12,8 +9,6 @@ import static ru.stolpner.MeasuringAction.*;
  */
 class Measurer {
 
-    private static final int MAXIMUM_NUMBER_OF_STEPS = 1000;
-
     /**
      * Solves the problem given verified arguments
      *
@@ -21,10 +16,20 @@ class Measurer {
      * @param firstCapacity capacity of the first container
      * @param secondCapacity capacity of the second container
      */
-    static void solveProblem(Integer amount, Integer firstCapacity, Integer secondCapacity) {
+    static void measure(Integer amount, Integer firstCapacity, Integer secondCapacity) {
         if (amount <= 0 || firstCapacity <= 0 || secondCapacity <= 0) throw new IllegalArgumentException("Arguments can not be negative");
         if (amount > firstCapacity + secondCapacity) throw new IllegalArgumentException("Target amount is too big");
         System.out.printf("Measurement started: first container capacity is %d, second container capacity is %d\n", firstCapacity, secondCapacity);
+        MeasuringSequence sequence = calculateMeasurement(amount, firstCapacity, secondCapacity);
+        printResult(amount, sequence);
+    }
+
+    /**
+     * Calculates measurement sequence
+     *
+     * @return sequence of measurements
+     */
+    private static MeasuringSequence calculateMeasurement(Integer amount, Integer firstCapacity, Integer secondCapacity) {
 
         //TODO idea: try to build full graph of possibilities and find fastest route
         //TODO pseudoplan: 1) separate type for Measurement State 2) store them in HashSet, start from (0,0)
@@ -36,25 +41,25 @@ class Measurer {
         //TODO             8) conditions for "right" actions remove profit, better just calculate everything
         //TODO             9) always check if Measurement is reached, not to do extra calculations and find longer routes to same Measurement
         //TODO             10) to enhance the point of SHORTEST PATH - all State calculations must be on same-level always
-        MeasuringSequence sequence = calculateMeasurement(amount, firstCapacity, secondCapacity);
-        printResult(amount, sequence);
-    }
 
-    /**
-     * Calculates measurement sequence
-     *
-     * @return sequence of measurements
-     */
-    private static MeasuringSequence calculateMeasurement(Integer amount, Integer firstCapacity, Integer secondCapacity) {
-        Random random = new Random();
+        //TODO what is needed from collection? 1) duplicates not allowed 2) order of elements is not changed 3) iteration and search are fast
+        //TODO LINKEDHASHSET !!!
+
         Container first = new Container(firstCapacity);
         Container second = new Container(secondCapacity);
-        MeasuringSequence sequence = new MeasuringSequence();
-        while (!isMeasurementAchieved(amount, first, second) && sequence.getSequenceLength() < MAXIMUM_NUMBER_OF_STEPS) {
-            makeStep(random, first, second, sequence);
+        MeasurementState state = new MeasurementState("", first.getCurrentFill(), second.getCurrentFill(), false);
+        Set<MeasurementState> stateTree = new LinkedHashSet<>();
+
+
+        while (!isMeasurementAchieved(amount, first, second)) {
+            makeStep(first, second, sequence);
         }
 
         return sequence;
+    }
+
+    private static void getMeasurementsFromState(MeasurementState state) {
+
     }
 
     /**

@@ -15,9 +15,9 @@ public class Main {
      *             following numbers - integers, representing available container capacities
      */
 
-    //TODO improve architecture, improve algorithm, java docs
+    //TODO improve architecture, improve algorithm, java docs, namings
     public static void main(String[] args) {
         List<Integer> convertedArgs = MeasuringUtils.convertInput(args);
-        Measurer.solveProblem(convertedArgs.get(0), convertedArgs.get(1), convertedArgs.get(2));
+        Measurer.measure(convertedArgs.get(0), convertedArgs.get(1), convertedArgs.get(2));
     }
 }
