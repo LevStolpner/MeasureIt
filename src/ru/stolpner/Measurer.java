@@ -12,7 +12,7 @@ import static ru.stolpner.MeasuringAction.*;
  */
 class Measurer {
 
-    private static final int MAXIMUM_NUMBER_OF_STEPS = 1000000;
+    private static final int MAXIMUM_NUMBER_OF_STEPS = 1000;
 
     /**
      * Solves the problem given verified arguments
@@ -26,6 +26,16 @@ class Measurer {
         if (amount > firstCapacity + secondCapacity) throw new IllegalArgumentException("Target amount is too big");
         System.out.printf("Measurement started: first container capacity is %d, second container capacity is %d\n", firstCapacity, secondCapacity);
 
+        //TODO idea: try to build full graph of possibilities and find fastest route
+        //TODO pseudoplan: 1) separate type for Measurement State 2) store them in HashSet, start from (0,0)
+        //TODO             3) on each step apply all possible actions, store obtained State in Set
+        //TODO             4) if State is old - do nothing. if all States are old - calculate from new States
+        //TODO             5) somehow remember which States in Set are already calculated from
+        //TODO             6) when all States are calculated, and there are no new States - measurement finished
+        //TODO             7) storing HISTORY OF CHANGES IS ABSOLUTELY NECESSARY TO EXPLAIN THE SOLUTION
+        //TODO             8) conditions for "right" actions remove profit, better just calculate everything
+        //TODO             9) always check if Measurement is reached, not to do extra calculations and find longer routes to same Measurement
+        //TODO             10) to enhance the point of SHORTEST PATH - all State calculations must be on same-level always
         MeasuringSequence sequence = calculateMeasurement(amount, firstCapacity, secondCapacity);
         printResult(amount, sequence);
     }

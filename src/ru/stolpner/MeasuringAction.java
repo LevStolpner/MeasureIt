@@ -27,7 +27,7 @@ enum MeasuringAction {
      *
      * @return action name
      */
-    public String getActionName() {
+    String getActionName() {
         return this.actionName;
     }
 }
