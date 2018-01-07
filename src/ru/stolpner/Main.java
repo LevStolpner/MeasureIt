@@ -16,6 +16,8 @@ public class Main {
      */
 
     //TODO improve architecture, improve algorithm, java docs, namings
+    //TODO separate "global" class with info on AMOUNT and CAPACITIES
+    //TODO refactoring
     public static void main(String[] args) {
         List<Integer> convertedArgs = MeasuringUtils.convertInput(args);
         Measurer.measure(convertedArgs.get(0), convertedArgs.get(1), convertedArgs.get(2));

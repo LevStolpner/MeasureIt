@@ -1,8 +1,7 @@
 package ru.stolpner;
 
 import java.util.*;
-
-import static ru.stolpner.MeasuringAction.*;
+import java.util.stream.Collectors;
 
 /**
  * Class which is going to solve the measuring problem
@@ -10,169 +9,103 @@ import static ru.stolpner.MeasuringAction.*;
 class Measurer {
 
     /**
-     * Solves the problem given verified arguments
+     * Tries to measure needed amount given two container capacities
      *
-     * @param amount amount to be measured
-     * @param firstCapacity capacity of the first container
+     * @param amount         amount to be measured
+     * @param firstCapacity  capacity of the first container
      * @param secondCapacity capacity of the second container
      */
     static void measure(Integer amount, Integer firstCapacity, Integer secondCapacity) {
-        if (amount <= 0 || firstCapacity <= 0 || secondCapacity <= 0) throw new IllegalArgumentException("Arguments can not be negative");
-        if (amount > firstCapacity + secondCapacity) throw new IllegalArgumentException("Target amount is too big");
+        if (amount <= 0 || firstCapacity <= 0 || secondCapacity <= 0)
+            throw new IllegalArgumentException("Arguments can not be negative");
+        if (amount > firstCapacity && amount > secondCapacity) throw new IllegalArgumentException("Target amount is too big");
         System.out.printf("Measurement started: first container capacity is %d, second container capacity is %d\n", firstCapacity, secondCapacity);
-        MeasuringSequence sequence = calculateMeasurement(amount, firstCapacity, secondCapacity);
-        printResult(amount, sequence);
-    }
-
-    /**
-     * Calculates measurement sequence
-     *
-     * @return sequence of measurements
-     */
-    private static MeasuringSequence calculateMeasurement(Integer amount, Integer firstCapacity, Integer secondCapacity) {
-
-        //TODO idea: try to build full graph of possibilities and find fastest route
-        //TODO pseudoplan: 1) separate type for Measurement State 2) store them in HashSet, start from (0,0)
-        //TODO             3) on each step apply all possible actions, store obtained State in Set
-        //TODO             4) if State is old - do nothing. if all States are old - calculate from new States
-        //TODO             5) somehow remember which States in Set are already calculated from
-        //TODO             6) when all States are calculated, and there are no new States - measurement finished
-        //TODO             7) storing HISTORY OF CHANGES IS ABSOLUTELY NECESSARY TO EXPLAIN THE SOLUTION
-        //TODO             8) conditions for "right" actions remove profit, better just calculate everything
-        //TODO             9) always check if Measurement is reached, not to do extra calculations and find longer routes to same Measurement
-        //TODO             10) to enhance the point of SHORTEST PATH - all State calculations must be on same-level always
-
-        //TODO what is needed from collection? 1) duplicates not allowed 2) order of elements is not changed 3) iteration and search are fast
-        //TODO LINKEDHASHSET !!!
-
-        Container first = new Container(firstCapacity);
-        Container second = new Container(secondCapacity);
-        MeasurementState state = new MeasurementState("", first.getCurrentFill(), second.getCurrentFill(), false);
-        Set<MeasurementState> stateTree = new LinkedHashSet<>();
-
-
-        while (!isMeasurementAchieved(amount, first, second)) {
-            makeStep(first, second, sequence);
-        }
-
-        return sequence;
-    }
-
-    private static void getMeasurementsFromState(MeasurementState state) {
-
-    }
-
-    /**
-     * Checks whether needed amount is produced in measurement process
-     *
-     * @param amount amount needed
-     * @param first first container
-     * @param second second container
-     * @return true if measurement is done successfully, false if not
-     */
-    private static boolean isMeasurementAchieved(Integer amount, Container first, Container second) {
-        return first.getCurrentFill() == amount || second.getCurrentFill() == amount;
-    }
-
-    /**
-     * Makes step of measuring
-     *
-     * @param random instance of Random
-     * @param first first container
-     * @param second second container
-     * @param sequence measuring sequence
-     */
-    private static void makeStep(Random random, Container first, Container second, MeasuringSequence sequence) {
-        List<MeasuringAction> availableActions = pickAvailableActions(first, second, sequence);
-        int index = random.nextInt(availableActions.size());
-        MeasuringAction selectedAction = availableActions.get(index);
-        switch (selectedAction) {
-            case FILL_A:
-                first.fill();
-                break;
-            case FILL_B:
-                second.fill();
-                break;
-            case EMPTY_A:
-                first.empty();
-                break;
-            case EMPTY_B:
-                second.empty();
-                break;
-            case POUR_A_IN_B:
-                MeasuringUtils.pour(first, second);
-                break;
-            case POUR_B_IN_A:
-                MeasuringUtils.pour(second, first);
-        }
-
-        MeasuringStep step = new MeasuringStep(selectedAction, first.getCurrentFill(), second.getCurrentFill());
-        sequence.addMeasuringStep(step);
-    }
-
-    /**
-     * Picks logically productive actions available for measurement
-     *
-     * @return list of possible measurement actions
-     */
-    private static List<MeasuringAction> pickAvailableActions(Container first, Container second, MeasuringSequence sequence) {
-        if (sequence.getSequenceLength() == 0) {
-            return Arrays.asList(MeasuringAction.values());
-        }
-
-        List<MeasuringAction> availableActions = new ArrayList<>();
-        MeasuringAction lastAction = sequence.getLastStep().getAction();
-        if (!first.isFull() && lastAction != EMPTY_A) {
-            availableActions.add(FILL_A);
-        }
-        if (!second.isFull() && lastAction != EMPTY_B) {
-            availableActions.add(FILL_B);
-        }
-        if (!first.isEmpty() && lastAction != FILL_A) {
-            availableActions.add(EMPTY_A);
-        }
-        if (!second.isEmpty() && lastAction != FILL_B) {
-            availableActions.add(EMPTY_B);
-        }
-        if (!first.isEmpty() && !second.isFull()) {
-            availableActions.add(POUR_A_IN_B);
-        }
-        if (!first.isFull() && !second.isEmpty()) {
-            availableActions.add(POUR_B_IN_A);
-        }
-
-        return availableActions;
-    }
-
-    /**
-     * Defines the result and prints appropriate message
-     *
-     * @param amount amount needed to measure
-     * @param sequence sequence describing steps made
-     */
-    private static void printResult(int amount, MeasuringSequence sequence) {
-        if (sequence.getSequenceLength() < MAXIMUM_NUMBER_OF_STEPS) {
-            printPositiveResult(sequence);
+        Optional<MeasurementState> stateOptional = findMeasurement(amount, firstCapacity, secondCapacity);
+        if (stateOptional.isPresent()) {
+            printPositiveResult(stateOptional.get(), amount, firstCapacity, secondCapacity);
         } else {
-            printNegativeResult(amount);
+            printNegativeResult(amount, firstCapacity, secondCapacity);
         }
     }
 
     /**
-     * Prints message that measuring completed successfully and prints steps to do it
+     * Tries to find a measurement step by step, calculating a bunch of new measurements on each step
      *
-     * @param sequence sequence representing steps to measure needed amount
+     * @param amount needed amount to measure
+     * @param firstCapacity capacity of the first container
+     * @param secondCapacity capacity of the second container
+     * @return optional of right measurement state with needed amount
      */
-    private static void printPositiveResult(MeasuringSequence sequence) {
-        System.out.println("WE FOUND THE MEASURE!!!1!");
-        System.out.println(sequence.toString());
+    private static Optional<MeasurementState> findMeasurement(Integer amount, Integer firstCapacity, Integer secondCapacity) {
+        MeasurementState firstState = new MeasurementState(firstCapacity, secondCapacity);
+        MeasurementHistory measurementHistory = new MeasurementHistory(firstState);
+
+        while (!isMeasurementFinished(measurementHistory) && !isMeasurementFound(measurementHistory, amount)) {
+            makeMeasurementStep(measurementHistory);
+        }
+
+        return measurementHistory.getMeasurementStates().stream().filter(s -> s.getFirstContainerFill() == amount || s.getSecondContainerFill() == amount).findFirst();
+    }
+
+    /**
+     *
+     *
+     * @param measurementHistory
+     * @return
+     */
+    private static boolean isMeasurementFinished(MeasurementHistory measurementHistory) {
+        return measurementHistory.getMeasurementStates().stream().allMatch(MeasurementState::isMeasuredFrom);
+    }
+
+    /**
+     * Checks whether a measurement is found
+     *
+     * @param measurementHistory set of already calculated states
+     * @param amount needed amount
+     * @return if measurement is found
+     */
+    private static boolean isMeasurementFound(MeasurementHistory measurementHistory, Integer amount) {
+        return measurementHistory.getMeasurementStates().stream().anyMatch(s -> s.getFirstContainerFill() == amount || s.getSecondContainerFill() == amount);
+    }
+
+    /**
+     * Makes a step, firstly by finding a list of states to measure from, secondly by calculating new states and adding them to measurement history
+     *
+     * @param measurementHistory set of already calculated states
+     */
+    private static void makeMeasurementStep(MeasurementHistory measurementHistory) {
+        List<MeasurementState> statesToMeasureFrom = measurementHistory.getMeasurementStates()
+                .stream()
+                .filter(s -> !s.isMeasuredFrom())
+                .collect(Collectors.toList());
+        measurementHistory.getMeasurementStates().forEach(s -> s.setMeasuredFrom(true));
+
+        for (MeasurementState state : statesToMeasureFrom) {
+            for (MeasurementAction action : MeasurementAction.values()) {
+                MeasurementState newState = MeasuringUtils.applyActionToMeasurementState(state, action);
+                measurementHistory.getMeasurementStates().add(newState);
+            }
+        }
+    }
+
+    /**
+     * Prints positive result with information on measurement steps
+     *
+     * @param state final state
+     * @param amount needed amount
+     * @param firstCapacity capacity of the first container
+     * @param secondCapacity capacity of the second container
+     */
+    private static void printPositiveResult(MeasurementState state, Integer amount, Integer firstCapacity, Integer secondCapacity) {
+        System.out.println(String.format("Measurement %d amount with two containers of %d and %d capacities is possible.\n" +
+                "To measure this amount, follow printed steps:\n", amount, firstCapacity, secondCapacity));
+        MeasuringUtils.printSuccessfulMeasurementProcess(state, firstCapacity, secondCapacity);
     }
 
     /**
      * Prints message that measuring needed amount is not possible
      */
-    private static void printNegativeResult(int requiredAmount) {
-        String result = String.format("Measuring %d amount of substance turned out to be impossible over %d steps:(", requiredAmount, MAXIMUM_NUMBER_OF_STEPS);
-        System.out.println(result);
+    private static void printNegativeResult(Integer amount, Integer firstCapacity, Integer secondCapacity) {
+        System.out.println(String.format("Measurement %d amount with two containers of %d and %d capacities is not possible.\n", amount, firstCapacity, secondCapacity));
     }
 }
