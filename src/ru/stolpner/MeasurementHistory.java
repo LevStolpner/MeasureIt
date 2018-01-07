@@ -8,16 +8,16 @@ import java.util.Set;
  */
 class MeasurementHistory {
 
-    private Set<MeasurementState> measurementStates;
+    private static Set<MeasurementState> measurementStates;
 
     /**
-     * Constructor with initial state
+     * Sets initial measurement state in history
      *
      * @param firstState initial state
      */
-    MeasurementHistory(MeasurementState firstState) {
-        this.measurementStates = new HashSet<>();
-        this.measurementStates.add(firstState);
+    static void initialize(MeasurementState firstState) {
+        measurementStates = new HashSet<>();
+        measurementStates.add(firstState);
     }
 
     /**
@@ -25,7 +25,7 @@ class MeasurementHistory {
      *
      * @return measurement states
      */
-    Set<MeasurementState> getMeasurementStates() {
+    static Set<MeasurementState> getMeasurementStates() {
         return measurementStates;
     }
 }

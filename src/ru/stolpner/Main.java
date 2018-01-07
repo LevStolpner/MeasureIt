@@ -15,8 +15,6 @@ public class Main {
      *             following numbers - integers, representing available container capacities
      */
 
-    //TODO improve architecture, check for SOLID, namings, refactoring for readability
-    //TODO wrapping integers
     public static void main(String[] args) {
         List<Integer> convertedArgs = MeasuringUtils.convertInput(args);
         Measurer.measure(convertedArgs.get(0), convertedArgs.get(1), convertedArgs.get(2));

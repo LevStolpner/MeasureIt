@@ -16,12 +16,7 @@ class Measurer {
      * @param secondCapacity capacity of the second container
      */
     static void measure(Integer amount, Integer firstCapacity, Integer secondCapacity) {
-        if (amount <= 0 || firstCapacity <= 0 || secondCapacity <= 0)
-            throw new IllegalArgumentException("Arguments can not be negative");
-        if (amount > firstCapacity && amount > secondCapacity) throw new IllegalArgumentException("Target amount is too big");
-        MeasurementArgs.initialize(amount, firstCapacity, secondCapacity);
-        System.out.printf("Measurement started: first container capacity is %d, second container capacity is %d\n", firstCapacity, secondCapacity);
-
+        validateArguments(amount, firstCapacity, secondCapacity);
         Optional<MeasurementState> stateOptional = findMeasurement();
         if (stateOptional.isPresent()) {
             printPositiveResult(stateOptional.get());
@@ -31,59 +26,78 @@ class Measurer {
     }
 
     /**
+     * Validates input arguments
+     *
+     * @param amount amount needed to measure
+     * @param firstCapacity capacity of first container
+     * @param secondCapacity capacity of second container
+     */
+    private static void validateArguments(Integer amount, Integer firstCapacity, Integer secondCapacity) {
+        if (amount <= 0 || firstCapacity <= 0 || secondCapacity <= 0)
+            throw new IllegalArgumentException("Arguments can not be negative");
+        if (amount > firstCapacity && amount > secondCapacity) throw new IllegalArgumentException("Target amount is too big");
+        MeasurementArgs.initialize(amount, firstCapacity, secondCapacity);
+        System.out.printf("Measurement started: first container capacity is %d, second container capacity is %d\n", firstCapacity, secondCapacity);
+    }
+
+    /**
      * Tries to find a measurement step by step, calculating a bunch of new measurements on each step
      *
      * @return optional of right measurement state with needed amount
      */
     private static Optional<MeasurementState> findMeasurement() {
-        MeasurementState firstState = new MeasurementState();
-        MeasurementHistory measurementHistory = new MeasurementHistory(firstState);
-
-        while (!isMeasurementFinished(measurementHistory) && !isMeasurementFound(measurementHistory)) {
-            makeMeasurementStep(measurementHistory);
+        MeasurementHistory.initialize(new MeasurementState());
+        while (!isMeasurementFinished() && !isMeasurementFound()) {
+            makeMeasurementStep();
         }
 
-        return measurementHistory.getMeasurementStates().stream()
-                .filter(s -> s.getFirstContainerFill() == MeasurementArgs.getAmount() || s.getSecondContainerFill() == MeasurementArgs.getAmount()).findFirst();
+        return getMeasurementResult();
     }
 
     /**
      * Checks whether all states are measured from
      *
-     * @param measurementHistory set of already calculated states
      * @return if measurement is finished
      */
-    private static boolean isMeasurementFinished(MeasurementHistory measurementHistory) {
-        return measurementHistory.getMeasurementStates().stream().allMatch(MeasurementState::isMeasuredFrom);
+    private static boolean isMeasurementFinished() {
+        return MeasurementHistory.getMeasurementStates().stream().allMatch(MeasurementState::isMeasuredFrom);
     }
 
     /**
      * Checks whether a measurement is found
      *
-     * @param measurementHistory set of already calculated states
      * @return if measurement is found
      */
-    private static boolean isMeasurementFound(MeasurementHistory measurementHistory) {
-        return measurementHistory.getMeasurementStates().stream()
+    private static boolean isMeasurementFound() {
+        return MeasurementHistory.getMeasurementStates().stream()
                 .anyMatch(s -> s.getFirstContainerFill() == MeasurementArgs.getAmount() || s.getSecondContainerFill() == MeasurementArgs.getAmount());
     }
 
     /**
-     * Makes a step, firstly by finding a list of states to measure from, secondly by calculating new states and adding them to measurement history
+     * Gets measurement result, whether it is achieved or not
      *
-     * @param measurementHistory set of already calculated states
+     * @return optional of final measurement state
      */
-    private static void makeMeasurementStep(MeasurementHistory measurementHistory) {
-        List<MeasurementState> statesToMeasureFrom = measurementHistory.getMeasurementStates()
+    private static Optional<MeasurementState> getMeasurementResult() {
+        return MeasurementHistory.getMeasurementStates().stream()
+                .filter(s -> s.getFirstContainerFill() == MeasurementArgs.getAmount() || s.getSecondContainerFill() == MeasurementArgs.getAmount())
+                .findFirst();
+    }
+
+    /**
+     * Makes a step, firstly by finding a list of states to measure from, secondly by calculating new states and adding them to measurement history
+     */
+    private static void makeMeasurementStep() {
+        List<MeasurementState> statesToMeasureFrom = MeasurementHistory.getMeasurementStates()
                 .stream()
                 .filter(s -> !s.isMeasuredFrom())
                 .collect(Collectors.toList());
-        measurementHistory.getMeasurementStates().forEach(s -> s.setMeasuredFrom(true));
+        MeasurementHistory.getMeasurementStates().forEach(s -> s.setMeasuredFrom(true));
 
         for (MeasurementState state : statesToMeasureFrom) {
             for (MeasurementAction action : MeasurementAction.values()) {
                 MeasurementState newState = MeasuringUtils.applyActionToMeasurementState(state, action);
-                measurementHistory.getMeasurementStates().add(newState);
+                MeasurementHistory.getMeasurementStates().add(newState);
             }
         }
     }
