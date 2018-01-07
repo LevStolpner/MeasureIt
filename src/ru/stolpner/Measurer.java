@@ -48,10 +48,10 @@ class Measurer {
     }
 
     /**
+     * Checks whether all states are measured from
      *
-     *
-     * @param measurementHistory
-     * @return
+     * @param measurementHistory set of already calculated states
+     * @return if measurement is finished
      */
     private static boolean isMeasurementFinished(MeasurementHistory measurementHistory) {
         return measurementHistory.getMeasurementStates().stream().allMatch(MeasurementState::isMeasuredFrom);
