@@ -47,10 +47,10 @@ class MeasuringUtils {
         int newSecondContainerFill = state.getSecondContainerFill();
         switch (action) {
             case FILL_FIRST:
-                newFirstContainerFill = state.getFirstContainerCapacity();
+                newFirstContainerFill = MeasurementArgs.getFirstCapacity();
                 break;
             case FILL_SECOND:
-                newSecondContainerFill = state.getSecondContainerCapacity();
+                newSecondContainerFill = MeasurementArgs.getSecondCapacity();
                 break;
             case EMPTY_FIRST:
                 newFirstContainerFill = 0;
@@ -59,41 +59,39 @@ class MeasuringUtils {
                 newSecondContainerFill = 0;
                 break;
             case POUR_FIRST_IN_SECOND:
-                if (state.getFirstContainerFill() <= state.getSecondContainerCapacity() - state.getSecondContainerFill()) {
+                if (state.getFirstContainerFill() <= MeasurementArgs.getSecondCapacity() - state.getSecondContainerFill()) {
                     newFirstContainerFill = 0;
                     newSecondContainerFill += state.getFirstContainerFill();
                 } else {
-                    newFirstContainerFill -= state.getSecondContainerCapacity() - state.getSecondContainerFill();
-                    newSecondContainerFill = state.getSecondContainerCapacity();
+                    newFirstContainerFill -= MeasurementArgs.getSecondCapacity() - state.getSecondContainerFill();
+                    newSecondContainerFill = MeasurementArgs.getSecondCapacity();
                 }
                 break;
             case POUR_SECOND_IN_FIRST:
-                if (state.getSecondContainerFill() <= state.getFirstContainerCapacity() - state.getFirstContainerFill()) {
+                if (state.getSecondContainerFill() <= MeasurementArgs.getFirstCapacity() - state.getFirstContainerFill()) {
                     newFirstContainerFill += state.getSecondContainerFill();
                     newSecondContainerFill = 0;
                 } else {
-                    newFirstContainerFill = state.getFirstContainerCapacity();
-                    newSecondContainerFill -= state.getFirstContainerCapacity() - state.getFirstContainerFill();
+                    newFirstContainerFill = MeasurementArgs.getFirstCapacity();
+                    newSecondContainerFill -= MeasurementArgs.getFirstCapacity() - state.getFirstContainerFill();
                 }
         }
 
         List<MeasurementAction> newActionList = new ArrayList<>(state.getActions());
         newActionList.add(action);
 
-        return new MeasurementState(newActionList, state.getFirstContainerCapacity(), state.getSecondContainerCapacity(), newFirstContainerFill, newSecondContainerFill, false);
+        return new MeasurementState(newActionList, newFirstContainerFill, newSecondContainerFill, false);
     }
 
     /**
      * Print information on sequence of steps for measuring needed amount
      *
      * @param state last state with needed amount
-     * @param firstCapacity capacity of first container
-     * @param secondCapacity capacity of second container
      */
-    static void printSuccessfulMeasurementProcess(MeasurementState state, Integer firstCapacity, Integer secondCapacity) {
+    static void printSuccessfulMeasurementProcess(MeasurementState state) {
         String result = "";
         int stepCounter = 1;
-        MeasurementState reproducingState = new MeasurementState(firstCapacity, secondCapacity);
+        MeasurementState reproducingState = new MeasurementState();
         for (MeasurementAction action : state.getActions()) {
             reproducingState = applyActionToMeasurementState(reproducingState, action);
             result += String.format("Step %d: %s. First container fill = %d, Second container fill = %d\n",
